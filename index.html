@@ -1010,8 +1010,8 @@ function renderMatch(){
     btn.className = 'match-item';
     btn.dataset.side = 'right';
     btn.dataset.idx = ri;
-    const letter = String.fromCharCode(65 + rightOrder.indexOf(ri));
     btn.textContent = MATCH_RIGHT[ri];
+    btn.addEventListener('click', ()=>clickMatch(btn));
     rightCol.appendChild(btn);
   });
   setComplete('pMatch', false);
@@ -1026,8 +1026,9 @@ function clickMatch(btn){
       // unpair
       const rIdx = matchPairs[idx];
       delete matchPairs[idx];
-      btn.classList.remove('paired');
-      document.querySelector(`.match-item[data-side="right"][data-idx="${rIdx}"]`).classList.remove('paired');
+      btn.classList.remove('paired','correct','incorrect');
+      const rEl = document.querySelector(`.match-item[data-side="right"][data-idx="${rIdx}"]`);
+      if(rEl) rEl.classList.remove('paired','correct','incorrect');
       updateMatchScore();
       return;
     }
@@ -1039,8 +1040,9 @@ function clickMatch(btn){
     const pairedLeft = Object.keys(matchPairs).find(l => matchPairs[l] === idx);
     if(pairedLeft !== undefined){
       delete matchPairs[pairedLeft];
-      btn.classList.remove('paired');
-      document.querySelector(`.match-item[data-side="left"][data-idx="${pairedLeft}"]`).classList.remove('paired');
+      btn.classList.remove('paired','correct','incorrect');
+      const lEl = document.querySelector(`.match-item[data-side="left"][data-idx="${pairedLeft}"]`);
+      if(lEl) lEl.classList.remove('paired','correct','incorrect');
       updateMatchScore();
       return;
     }
@@ -1071,8 +1073,8 @@ function checkMatch(){
     const leftEl = document.querySelector(`.match-item[data-side="left"][data-idx="${l}"]`);
     const rightEl = document.querySelector(`.match-item[data-side="right"][data-idx="${r}"]`);
     if(MATCH_KEY[l] === r){
-      leftEl.classList.remove('incorrect'); leftEl.classList.add('correct');
-      rightEl.classList.remove('incorrect'); rightEl.classList.add('correct');
+      leftEl.classList.remove('incorrect');
+      rightEl.classList.remove('incorrect');
       numCorrect++;
     } else {
       leftEl.classList.remove('correct'); leftEl.classList.add('incorrect');
@@ -1081,11 +1083,15 @@ function checkMatch(){
   });
   if(numCorrect === 5){
     matchLocked = true;
-    document.querySelectorAll('.match-item').forEach(b=>b.style.pointerEvents='none');
+    document.querySelectorAll('.match-item').forEach(b=>{
+      b.classList.remove('incorrect');
+      b.classList.add('correct');
+      b.style.pointerEvents='none';
+    });
     showToast('🎉 Hoàn thành phần này!');
     setComplete('pMatch', true);
   } else {
-    showToast(`Đúng ${numCorrect}/5 cặp, thử lại các cặp còn sai nhé!`);
+    showToast(`Đúng ${numCorrect}/5 cặp — các ô đỏ là ghép sai, thử ghép lại nhé!`);
   }
 }
 function resetMatch(){ renderMatch(); }
